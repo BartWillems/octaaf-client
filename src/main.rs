@@ -1,6 +1,7 @@
 #[macro_use]
 extern crate serde_derive;
 
+extern crate libc;
 extern crate reqwest;
 extern crate serde;
 
@@ -14,6 +15,11 @@ struct Quote {
 }
 
 fn main() -> Result<(), Box<std::error::Error>> {
+    // Don't panic on broken pipes when writing to STDOUT
+    unsafe {
+        libc::signal(libc::SIGPIPE, libc::SIG_DFL);
+    }
+
     let client = reqwest::Client::new();
 
     let res: Quote = client

@@ -22,7 +22,7 @@ fn main() -> Result<(), Box<std::error::Error>> {
         .send()?
         .json()?;
 
-    println!("{}\n\t~{}", res.quote, res.from);
+    println!("\"{}\"\n\t~{}", res.quote, res.from);
     Ok(())
 }
 

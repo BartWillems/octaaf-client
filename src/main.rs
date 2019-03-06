@@ -39,11 +39,11 @@ fn main() {
 }
 
 fn fetch_quote(filter: Option<String>) -> Result<Quote, Box<std::error::Error>> {
-    let client = reqwest::Client::new();
+    let params = [("filter", filter.unwrap_or_default())];
 
-    let quote: Quote = client
+    let quote: Quote = reqwest::Client::new()
         .get("http://188.166.33.109:8080/api/v1/kali/quote")
-        .query(&[("filter", filter.unwrap_or("".to_string()))])
+        .query(&params)
         .send()?
         .json()?;
 

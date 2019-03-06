@@ -1,7 +1,7 @@
 [package]
 name = "kaliquote"
 version = "0.1.0"
-authors = ["bart"]
+authors = ["Bart Willems"]
 edition = "2018"
 
 [dependencies]

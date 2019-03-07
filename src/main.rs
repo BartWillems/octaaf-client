@@ -49,6 +49,8 @@ arg_enum! {
     }
 }
 
+static API_URL: &'static str = "http://188.166.33.109:8080/api/v1/kali";
+
 fn main() {
     // Don't panic on broken pipes when writing to STDOUT
     unsafe {
@@ -107,8 +109,10 @@ fn get_log_level(level: u8) -> log::LevelFilter {
 fn fetch_quote(filter: Option<String>) -> Result<Quote, Box<Error>> {
     let params = [("filter", filter.unwrap_or_default())];
 
+    let uri: String = format!("{}/quote", API_URL).to_string();
+
     let quote: Quote = reqwest::Client::new()
-        .get("http://188.166.33.109:8080/api/v1/kali/quote")
+        .get(&uri)
         .query(&params)
         .send()?
         .json()?;
@@ -119,11 +123,9 @@ fn fetch_quote(filter: Option<String>) -> Result<Quote, Box<Error>> {
 fn fetch_presidential_quote(filter: Option<String>) -> Result<&'static str, Box<Error>> {
     let file_name = "/tmp/trumpie";
     let params = [("filter", filter.unwrap_or_default())];
+    let uri: String = format!("{}/quote/presidential", API_URL).to_string();
 
-    let mut resp = reqwest::Client::new()
-        .get("http://188.166.33.109:8080/api/v1/kali/quote/presidential")
-        .query(&params)
-        .send()?;
+    let mut resp = reqwest::Client::new().get(&uri).query(&params).send()?;
 
     if !resp.status().is_success() {
         bail!("Invalid server response: {}", resp.status());

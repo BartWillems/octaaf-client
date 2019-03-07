@@ -1,11 +1,23 @@
 #[macro_use]
 extern crate serde_derive;
-extern crate structopt;
+
+#[macro_use]
+extern crate clap;
+
+#[macro_use]
+extern crate simple_error;
+
+#[macro_use]
+extern crate log;
 
 extern crate libc;
 extern crate reqwest;
 extern crate serde;
+extern crate simplelog;
+extern crate structopt;
 
+use simplelog::*;
+use std::error::Error;
 use std::fs::File;
 use std::io;
 use std::process::Command;
@@ -18,14 +30,23 @@ struct Quote {
     from: String,
 }
 
-#[derive(StructOpt)]
+#[derive(StructOpt, Debug)]
 #[structopt(name = "basic")]
 struct Opt {
     #[structopt(short = "f", long = "filter")]
     filter: Option<String>,
-    /// Quote type, either text or presidential
-    #[structopt(short = "t", long = "type", default_value = "text")]
-    quote_type: String,
+    #[structopt(raw(possible_values = "&QuoteType::variants()", case_insensitive = "true",))]
+    quote_type: QuoteType,
+    #[structopt(short = "v", long = "verbose", parse(from_occurrences))]
+    verbose: u8,
+}
+
+arg_enum! {
+    #[derive(Debug)]
+    enum QuoteType {
+        Text,
+        Presidential,
+    }
 }
 
 fn main() {
@@ -36,16 +57,26 @@ fn main() {
 
     let opt = Opt::from_args();
 
-    match opt.quote_type.as_ref() {
-        "text" => {
+    CombinedLogger::init(vec![TermLogger::new(
+        get_log_level(opt.verbose),
+        Config::default(),
+    )
+    .unwrap()])
+    .unwrap();
+
+    match opt.quote_type {
+        QuoteType::Text => {
             let quote = fetch_quote(opt.filter);
 
             match quote {
                 Ok(q) => println!("\"{}\"\n\t~{}", q.quote, q.from),
-                Err(e) => println!("Quote fetch error: {}", e),
+                Err(e) => {
+                    println!("Quote fetch error: {}", e);
+                    std::process::exit(1);
+                }
             }
         }
-        "presidential" => {
+        QuoteType::Presidential => {
             let res = fetch_presidential_quote(opt.filter);
             match res {
                 Ok(quote_file) => {
@@ -54,16 +85,26 @@ fn main() {
                         .output()
                         .expect("Failed to open presidential quote");
                 }
-                Err(e) => println!("Unable to fetch presidential quote: {}", e),
+                Err(e) => {
+                    println!("Unable to fetch presidential quote: {}", e);
+                    std::process::exit(1);
+                }
             }
-        }
-        _ => {
-            println!("Invalid quote type given!");
         }
     }
 }
 
-fn fetch_quote(filter: Option<String>) -> Result<Quote, Box<std::error::Error>> {
+fn get_log_level(level: u8) -> log::LevelFilter {
+    match level {
+        0 => log::LevelFilter::Off,
+        1 => log::LevelFilter::Info,
+        2 => log::LevelFilter::Debug,
+        3 => log::LevelFilter::Trace,
+        _ => log::LevelFilter::max(),
+    }
+}
+
+fn fetch_quote(filter: Option<String>) -> Result<Quote, Box<Error>> {
     let params = [("filter", filter.unwrap_or_default())];
 
     let quote: Quote = reqwest::Client::new()
@@ -75,7 +116,7 @@ fn fetch_quote(filter: Option<String>) -> Result<Quote, Box<std::error::Error>> 
     Ok(quote)
 }
 
-fn fetch_presidential_quote(filter: Option<String>) -> Result<String, Box<std::error::Error>> {
+fn fetch_presidential_quote(filter: Option<String>) -> Result<&'static str, Box<Error>> {
     let file_name = "/tmp/trumpie";
     let params = [("filter", filter.unwrap_or_default())];
 
@@ -84,8 +125,14 @@ fn fetch_presidential_quote(filter: Option<String>) -> Result<String, Box<std::e
         .query(&params)
         .send()?;
 
+    if !resp.status().is_success() {
+        bail!("Invalid server response: {}", resp.status());
+    }
+
     let mut out = File::create(file_name)?;
     io::copy(&mut resp, &mut out)?;
 
-    Ok(file_name.to_string())
+    info!("Saved the presidential quote as {}", file_name);
+
+    Ok(file_name)
 }

@@ -1,8 +1,21 @@
 stages:
   - build
 
+variables:
+  CARGO_HOME: "${CI_PROJECT_DIR}/.cargo"
+
+  cache:
+    paths:
+      - .cargo/
+      - target/
+
 rust-latest:
   stage: build
   image: rust:latest
   script:
-    - cargo build --verbose
+    - cargo build --verbose --release
+    - mv target/release/kaliquote ./
+  artifacts:
+    name: kaliquote
+    paths:
+      - kaliquote

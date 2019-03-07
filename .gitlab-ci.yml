@@ -4,10 +4,10 @@ stages:
 variables:
   CARGO_HOME: "${CI_PROJECT_DIR}/.cargo"
 
-  cache:
-    paths:
-      - .cargo/
-      - target/
+cache:
+  paths:
+    - .cargo/
+    - target/
 
 rust-latest:
   stage: build

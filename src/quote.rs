@@ -38,32 +38,17 @@ impl FromStr for QuoteType {
 pub fn get(quote_type: QuoteType, filter: Option<String>) -> Result<(), Box<Error>> {
     match quote_type {
         QuoteType::Text => {
-            let quote = fetch_text_quote(filter);
+            let quote = fetch_text_quote(filter)?;
+            println!("\"{}\"\n\t~{}", quote.quote, quote.from);
+            Ok(())
 
-            match quote {
-                Ok(q) => {
-                    println!("\"{}\"\n\t~{}", q.quote, q.from);
-                    Ok(())
-                }
-                Err(e) => {
-                    bail!("Quote fetch error: {}", e);
-                }
-            }
         }
         QuoteType::Presidential => {
-            let res = fetch_presidential_quote(filter);
-            match res {
-                Ok(quote_file) => {
-                    Command::new("xdg-open")
+            let quote_file = fetch_presidential_quote(filter)?;
+            Command::new("xdg-open")
                         .arg(quote_file)
-                        .output()
-                        .expect("Failed to open presidential quote");
-                    Ok(())
-                }
-                Err(e) => {
-                    bail!("Unable to fetch presidential quote: {}", e);
-                }
-            }
+                        .output()?;
+            Ok(())
         }
     }
 }

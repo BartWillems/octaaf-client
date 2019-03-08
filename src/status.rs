@@ -16,6 +16,7 @@ pub fn get_status() -> Status {
             res = req;
         }
         Err(e) => {
+            debug!("Unable to do a request to the server.");
             return Status {
                 healthy: false,
                 response: e.to_string(),

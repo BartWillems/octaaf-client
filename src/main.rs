@@ -54,7 +54,11 @@ fn main() {
 
     init_logger(opt.verbose);
 
-    match opt.cmd {
+    handle_user_command(opt.cmd);
+}
+
+fn handle_user_command(cmd: Command) {
+    match cmd {
         Command::Quote { quote_type, filter } => match quote::get(quote_type, filter) {
             Ok(_) => (),
             Err(e) => {

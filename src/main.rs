@@ -1,8 +1,8 @@
 #[macro_use]
-extern crate serde_derive;
+extern crate structopt;
 
 #[macro_use]
-extern crate clap;
+extern crate serde_derive;
 
 #[macro_use]
 extern crate simple_error;
@@ -14,42 +14,35 @@ extern crate libc;
 extern crate reqwest;
 extern crate serde;
 extern crate simplelog;
-extern crate structopt;
 
 use simplelog::*;
-use std::error::Error;
-use std::fs::File;
-use std::io;
-use std::process::Command;
 use structopt::StructOpt;
 
-#[derive(Deserialize)]
-struct Quote {
-    #[serde(rename = "Quote")]
-    quote: String,
-    from: String,
-}
+mod quote;
+mod status;
 
-#[derive(StructOpt, Debug)]
-#[structopt(name = "basic")]
+#[derive(StructOpt)]
+#[structopt(name = "octaaf-client")]
 struct Opt {
-    #[structopt(short = "f", long = "filter")]
-    filter: Option<String>,
-    #[structopt(raw(possible_values = "&QuoteType::variants()", case_insensitive = "true",))]
-    quote_type: QuoteType,
     #[structopt(short = "v", long = "verbose", parse(from_occurrences))]
     verbose: u8,
+    #[structopt(subcommand)]
+    cmd: Command,
 }
 
-arg_enum! {
-    #[derive(Debug)]
-    enum QuoteType {
-        Text,
-        Presidential,
-    }
+#[derive(StructOpt)]
+enum Command {
+    #[structopt(name = "quote")]
+    Quote {
+        #[structopt(name = "type", long, short)]
+        /// Quote Type, either text or presidential
+        quote_type: quote::QuoteType,
+        #[structopt(name = "filter", long, short)]
+        filter: Option<String>,
+    },
+    #[structopt(name = "status")]
+    Status,
 }
-
-static API_URL: &'static str = "http://188.166.33.109:8080/api/v1/kali";
 
 fn main() {
     // Don't panic on broken pipes when writing to STDOUT
@@ -59,41 +52,32 @@ fn main() {
 
     let opt = Opt::from_args();
 
-    CombinedLogger::init(vec![TermLogger::new(
-        get_log_level(opt.verbose),
-        Config::default(),
-    )
-    .unwrap()])
-    .unwrap();
+    init_logger(opt.verbose);
 
-    match opt.quote_type {
-        QuoteType::Text => {
-            let quote = fetch_quote(opt.filter);
-
-            match quote {
-                Ok(q) => println!("\"{}\"\n\t~{}", q.quote, q.from),
-                Err(e) => {
-                    println!("Quote fetch error: {}", e);
-                    std::process::exit(1);
-                }
+    match opt.cmd {
+        Command::Quote { quote_type, filter } => match quote::get(quote_type, filter) {
+            Ok(_) => (),
+            Err(e) => {
+                println!("Quote error: {}", e);
+                std::process::exit(1);
             }
-        }
-        QuoteType::Presidential => {
-            let res = fetch_presidential_quote(opt.filter);
-            match res {
-                Ok(quote_file) => {
-                    Command::new("xdg-open")
-                        .arg(quote_file)
-                        .output()
-                        .expect("Failed to open presidential quote");
-                }
-                Err(e) => {
-                    println!("Unable to fetch presidential quote: {}", e);
-                    std::process::exit(1);
-                }
+        },
+        Command::Status => {
+            let status = status::get_status();
+
+            println!("{}", serde_json::to_string_pretty(&status).unwrap());
+            if !status.healthy {
+                std::process::exit(1);
             }
         }
     }
+}
+
+fn init_logger(verbosity: u8) {
+    let cfg: Vec<Box<SharedLogger>> =
+        vec![TermLogger::new(get_log_level(verbosity), Config::default()).unwrap()];
+
+    CombinedLogger::init(cfg).unwrap();
 }
 
 fn get_log_level(level: u8) -> log::LevelFilter {
@@ -104,37 +88,4 @@ fn get_log_level(level: u8) -> log::LevelFilter {
         3 => log::LevelFilter::Trace,
         _ => log::LevelFilter::max(),
     }
-}
-
-fn fetch_quote(filter: Option<String>) -> Result<Quote, Box<Error>> {
-    let params = [("filter", filter.unwrap_or_default())];
-
-    let uri: String = format!("{}/quote", API_URL).to_string();
-
-    let quote: Quote = reqwest::Client::new()
-        .get(&uri)
-        .query(&params)
-        .send()?
-        .json()?;
-
-    Ok(quote)
-}
-
-fn fetch_presidential_quote(filter: Option<String>) -> Result<&'static str, Box<Error>> {
-    let file_name = "/tmp/trumpie";
-    let params = [("filter", filter.unwrap_or_default())];
-    let uri: String = format!("{}/quote/presidential", API_URL).to_string();
-
-    let mut resp = reqwest::Client::new().get(&uri).query(&params).send()?;
-
-    if !resp.status().is_success() {
-        bail!("Invalid server response: {}", resp.status());
-    }
-
-    let mut out = File::create(file_name)?;
-    io::copy(&mut resp, &mut out)?;
-
-    info!("Saved the presidential quote as {}", file_name);
-
-    Ok(file_name)
 }

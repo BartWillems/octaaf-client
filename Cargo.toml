@@ -1,5 +1,5 @@
 [package]
-name = "kaliquote"
+name = "octaaf-client"
 version = "0.3.0"
 authors = ["Bart Willems"]
 edition = "2018"

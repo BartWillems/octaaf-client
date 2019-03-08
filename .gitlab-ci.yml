@@ -14,8 +14,8 @@ rust-latest:
   image: rust:latest
   script:
     - cargo build --verbose --release
-    - mv target/release/kaliquote ./
+    - mv target/release/octaaf-client ./
   artifacts:
-    name: kaliquote
+    name: octaaf-client
     paths:
-      - kaliquote
+      - octaaf-client

@@ -35,6 +35,8 @@ bart best dev
         ~swagnus
 ```
 
+Presidential quote:
+
 ![presidential quote](./images/presidential-quote.png)
 
 ### Status

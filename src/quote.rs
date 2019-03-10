@@ -41,12 +41,11 @@ pub fn get(quote_type: QuoteType, filter: Option<String>) -> Result<(), Box<Erro
             let quote = fetch_text_quote(filter)?;
             println!("\"{}\"\n\t~{}", quote.quote, quote.from);
             Ok(())
-
         }
         QuoteType::Presidential => {
-            let quote_file = fetch_presidential_quote(filter)?;
+            let image = fetch_presidential_quote(filter)?;
             Command::new("xdg-open")
-                        .arg(quote_file)
+                        .arg(image)
                         .output()?;
             Ok(())
         }

@@ -1,4 +1,4 @@
-static API_URL: &'static str = "http://188.166.33.109:8080/api/v1/health";
+static API_URL: &'static str = "https://api.octaafbot.xyz/api/v1/health";
 
 #[derive(Serialize, Deserialize)]
 pub struct Status {

@@ -6,7 +6,7 @@ use std::io;
 use std::process::Command;
 use std::str::FromStr;
 
-static API_URL: &'static str = "http://188.166.33.109:8080/api/v1/kali/quote";
+static API_URL: &'static str = "https://api.octaafbot.xyz/api/v1/kali/quote";
 
 #[derive(Deserialize)]
 pub struct Quote {
@@ -44,9 +44,7 @@ pub fn get(quote_type: QuoteType, filter: Option<String>) -> Result<(), Box<Erro
         }
         QuoteType::Presidential => {
             let image = fetch_presidential_quote(filter)?;
-            Command::new("xdg-open")
-                        .arg(image)
-                        .output()?;
+            Command::new("xdg-open").arg(image).output()?;
             Ok(())
         }
     }

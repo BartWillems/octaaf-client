@@ -13,12 +13,12 @@ USAGE:
 FLAGS:
     -h, --help       Prints help information
     -V, --version    Prints version information
-    -v, --verbose    
+    -v, --verbose
 
 SUBCOMMANDS:
     help      Prints this message or the help of the given subcommand(s)
-    quote     
-    status 
+    quote
+    status
 ```
 
 ### Quotes
@@ -49,4 +49,3 @@ $ octaaf-client status
   "status_code": 200
 }
 ```
-

@@ -27,7 +27,7 @@ impl FromStr for QuoteType {
     type Err = String;
 
     fn from_str(s: &str) -> Result<Self, String> {
-        match s.to_lowercase().as_ref() {
+        match s.trim().to_lowercase().as_ref() {
             "text" => Ok(QuoteType::Text),
             "presidential" => Ok(QuoteType::Presidential),
             &_ => Err(String::from("Invalid quote type found")),

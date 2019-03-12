@@ -66,14 +66,13 @@ fn handle_user_command(cmd: Command) {
                 std::process::exit(1);
             }
         },
-        Command::Status => {
-            let status = status::get_status();
-
-            println!("{}", serde_json::to_string_pretty(&status).unwrap());
-            if !status.healthy {
+        Command::Status => match status::get_status() {
+            Ok(s) => println!("{}", s),
+            Err(e) => {
+                println!("{}", e);
                 std::process::exit(1);
             }
-        }
+        },
     }
 }
 

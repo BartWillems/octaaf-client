@@ -15,27 +15,29 @@ impl fmt::Display for Status {
     }
 }
 
-pub fn get_status() -> Result<Status, Status> {
-    let req = reqwest::Client::new().get(API_URL).send();
+impl Status {
+    pub fn get() -> Result<Status, Status> {
+        let req = reqwest::Client::new().get(API_URL).send();
 
-    let mut res: reqwest::Response;
-    match req {
-        Ok(req) => {
-            res = req;
+        let mut res: reqwest::Response;
+        match req {
+            Ok(req) => {
+                res = req;
+            }
+            Err(e) => {
+                debug!("Unable to do a request to the server.");
+                return Err(Status {
+                    healthy: false,
+                    response: e.to_string(),
+                    status_code: 0,
+                });
+            }
         }
-        Err(e) => {
-            debug!("Unable to do a request to the server.");
-            return Err(Status {
-                healthy: false,
-                response: e.to_string(),
-                status_code: 0,
-            });
-        }
+
+        Ok(Status {
+            healthy: res.status().is_success(),
+            response: res.text().unwrap_or_default(),
+            status_code: res.status().as_u16(),
+        })
     }
-
-    Ok(Status {
-        healthy: res.status().is_success(),
-        response: res.text().unwrap_or_default(),
-        status_code: res.status().as_u16(),
-    })
 }

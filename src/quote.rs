@@ -1,6 +1,7 @@
 extern crate serde;
 
 use std::error::Error;
+use std::fmt;
 use std::fs::File;
 use std::io;
 use std::process::Command;
@@ -13,6 +14,12 @@ pub struct Quote {
     #[serde(rename = "Quote")]
     quote: String,
     from: String,
+}
+
+impl fmt::Display for Quote {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "\"{}\"\n\t~{}", self.quote, self.from)
+    }
 }
 
 #[derive(StructOpt, Debug)]
@@ -39,7 +46,7 @@ pub fn get(quote_type: QuoteType, filter: Option<String>) -> Result<(), Box<Erro
     match quote_type {
         QuoteType::Text => {
             let quote = fetch_text_quote(filter)?;
-            println!("\"{}\"\n\t~{}", quote.quote, quote.from);
+            println!("{}", quote);
             Ok(())
         }
         QuoteType::Presidential => {

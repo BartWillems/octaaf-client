@@ -18,31 +18,9 @@ extern crate simplelog;
 use simplelog::*;
 use structopt::StructOpt;
 
+mod cli;
 mod quote;
 mod status;
-
-#[derive(StructOpt)]
-#[structopt(name = "octaaf-client")]
-struct Opt {
-    #[structopt(short = "v", long = "verbose", parse(from_occurrences))]
-    verbose: u8,
-    #[structopt(subcommand)]
-    cmd: Command,
-}
-
-#[derive(StructOpt)]
-enum Command {
-    #[structopt(name = "quote")]
-    Quote {
-        #[structopt(name = "type", long, short)]
-        /// Quote Type, either text or presidential
-        quote_type: quote::QuoteType,
-        #[structopt(name = "filter", long, short)]
-        filter: Option<String>,
-    },
-    #[structopt(name = "status")]
-    Status,
-}
 
 fn main() {
     // Don't panic on broken pipes when writing to STDOUT
@@ -50,30 +28,11 @@ fn main() {
         libc::signal(libc::SIGPIPE, libc::SIG_DFL);
     }
 
-    let opt = Opt::from_args();
+    let opt = cli::Opt::from_args();
 
     init_logger(opt.verbose);
 
-    handle_user_command(opt.cmd);
-}
-
-fn handle_user_command(cmd: Command) {
-    match cmd {
-        Command::Quote { quote_type, filter } => match quote::get(quote_type, filter) {
-            Ok(_) => (),
-            Err(e) => {
-                println!("Quote error: {}", e);
-                std::process::exit(1);
-            }
-        },
-        Command::Status => match status::get_status() {
-            Ok(s) => println!("{}", s),
-            Err(e) => {
-                println!("{}", e);
-                std::process::exit(1);
-            }
-        },
-    }
+    cli::handle_user_command(opt.cmd);
 }
 
 fn init_logger(verbosity: u8) {

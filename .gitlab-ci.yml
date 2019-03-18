@@ -13,6 +13,7 @@ rust-latest:
   stage: build
   image: rust:latest
   script:
+    - cargo test
     - cargo build --verbose --release
     - mv target/release/octaaf-client ./
   artifacts:

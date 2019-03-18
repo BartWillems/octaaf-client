@@ -15,10 +15,10 @@ extern crate reqwest;
 extern crate serde;
 extern crate simplelog;
 
-use simplelog::*;
 use structopt::StructOpt;
 
 mod cli;
+mod logger;
 mod quote;
 mod status;
 
@@ -30,24 +30,7 @@ fn main() {
 
     let opt = cli::Opt::from_args();
 
-    init_logger(opt.verbose);
+    logger::init(opt.verbose).expect("Unable to init the logger");
 
     cli::handle_user_command(opt.cmd);
-}
-
-fn init_logger(verbosity: u8) {
-    let cfg: Vec<Box<SharedLogger>> =
-        vec![TermLogger::new(get_log_level(verbosity), Config::default()).unwrap()];
-
-    CombinedLogger::init(cfg).unwrap();
-}
-
-fn get_log_level(level: u8) -> log::LevelFilter {
-    match level {
-        0 => log::LevelFilter::Off,
-        1 => log::LevelFilter::Info,
-        2 => log::LevelFilter::Debug,
-        3 => log::LevelFilter::Trace,
-        _ => log::LevelFilter::max(),
-    }
 }

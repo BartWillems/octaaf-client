@@ -30,14 +30,14 @@ pub fn handle_user_command(cmd: Command) {
         Command::Quote { quote_type, filter } => match quote::get(quote_type, filter) {
             Ok(_) => (),
             Err(e) => {
-                println!("Quote error: {}", e);
+                eprintln!("Quote error: {}", e);
                 std::process::exit(1);
             }
         },
         Command::Status => match status::Status::get() {
             Ok(s) => println!("{}", s),
             Err(e) => {
-                println!("{}", e);
+                eprintln!("{}", e);
                 std::process::exit(1);
             }
         },

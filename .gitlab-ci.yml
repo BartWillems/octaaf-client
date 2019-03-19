@@ -3,6 +3,7 @@ stages:
 
 variables:
   CARGO_HOME: "${CI_PROJECT_DIR}/.cargo"
+  RUST_BACKTRACE: 1
 
 cache:
   paths:

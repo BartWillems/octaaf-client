@@ -1,13 +1,12 @@
 extern crate serde;
 
+use super::api;
 use std::error::Error;
 use std::fmt;
 use std::fs::File;
 use std::io;
 use std::process::Command;
 use std::str::FromStr;
-
-static API_URL: &'static str = "https://api.octaafbot.xyz/api/v1/kali/quote";
 
 #[derive(Deserialize)]
 pub struct Quote {
@@ -60,11 +59,7 @@ pub fn get(quote_type: QuoteType, filter: Option<String>) -> Result<(), Box<Erro
 fn fetch_text_quote(filter: Option<String>) -> Result<Quote, Box<Error>> {
     let params = [("filter", filter.unwrap_or_default())];
 
-    let quote: Quote = reqwest::Client::new()
-        .get(API_URL)
-        .query(&params)
-        .send()?
-        .json()?;
+    let quote: Quote = api::get_parameterized("/kali/quote", &params)?.json()?;
 
     Ok(quote)
 }
@@ -72,9 +67,8 @@ fn fetch_text_quote(filter: Option<String>) -> Result<Quote, Box<Error>> {
 fn fetch_presidential_quote(filter: Option<String>) -> Result<&'static str, Box<Error>> {
     let file_name = "/tmp/trumpie";
     let params = [("filter", filter.unwrap_or_default())];
-    let uri: String = format!("{}/presidential", API_URL).to_string();
 
-    let mut resp = reqwest::Client::new().get(&uri).query(&params).send()?;
+    let mut resp = api::get_parameterized("/kali/quote/presidential", &params)?;
 
     if !resp.status().is_success() {
         bail!("Invalid server response: {}", resp.status());

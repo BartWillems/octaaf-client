@@ -17,6 +17,7 @@ extern crate simplelog;
 
 use structopt::StructOpt;
 
+mod api;
 mod cli;
 mod logger;
 mod quote;

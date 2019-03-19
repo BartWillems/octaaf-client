@@ -1,6 +1,6 @@
 use std::fmt;
 
-static API_URL: &'static str = "https://api.octaafbot.xyz/api/v1/health";
+use super::api;
 
 #[derive(Serialize, Deserialize)]
 pub struct Status {
@@ -17,7 +17,7 @@ impl fmt::Display for Status {
 
 impl Status {
     pub fn get() -> Result<Status, Status> {
-        let req = reqwest::Client::new().get(API_URL).send();
+        let req = api::get("/health");
 
         let mut res: reqwest::Response;
         match req {

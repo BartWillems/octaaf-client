@@ -2,10 +2,8 @@ use simplelog::*;
 use std::error::Error;
 
 pub fn init(verbosity: u8) -> Result<(), Box<Error>> {
-    let cfg: Vec<Box<SharedLogger>> =
-        vec![TermLogger::new(get_log_level(verbosity), Config::default()).unwrap()];
-
-    CombinedLogger::init(cfg)?;
+    let level = get_log_level(verbosity);
+    TermLogger::init(level, Config::default())?;
 
     Ok(())
 }

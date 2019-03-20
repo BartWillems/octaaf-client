@@ -3,7 +3,7 @@ use serde::Serialize;
 static API_URL: &'static str = "https://api.octaafbot.xyz/api/v1";
 
 fn format_uri(endpoint: &str) -> String {
-    if endpoint.starts_with("/") {
+    if endpoint.starts_with('/') {
         format!("{}{}", API_URL, endpoint)
     } else {
         format!("{}/{}", API_URL, endpoint)

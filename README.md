@@ -1,5 +1,14 @@
 # Octaaf Client
 
+[![pipeline status](https://gitlab.com/bartwillems/octaaf-client/badges/master/pipeline.svg)](https://gitlab.com/bartwillems/octaaf-client/commits/master)
+
+
+## Build
+
+```bash
+$ cargo build
+```
+
 ## Usage
 
 ```bash
